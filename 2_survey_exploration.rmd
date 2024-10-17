@@ -1,0 +1,156 @@
+---
+title: "DRY coding"
+author: "Data Science in Biomedicine - Week 5"
+date: "`r Sys.Date()`"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, message = FALSE, warning = FALSE)
+```
+## Introduction
+
+We'll be using an in-built data set from the MASS package. But, because the MASS package can be a bit problematic to install, I've provided the data for you. It's in .rds format, so we load it in using the `read_rds()` function.
+
+For more info about the dataset, head to https://stat.ethz.ch/R-manual/R-devel/library/MASS/html/survey.html
+
+```{r}
+library(tidyverse)
+library(knitr)
+install.packages("kableExtra")
+library(kableExtra)
+
+survey <- read_rds("./data/survey.rds")
+```
+
+## Exercise 1
+Explore the data - what variables are in there, what variable types, how many variables and observations?
+```{r}
+str(survey)
+head(survey)
+
+# 237 obs. of  12 variables
+```
+
+
+## Exercise 2
+Round every numeric variable to 0 decimal places.
+
+```{r}
+rounded_data <- survey %>% 
+  mutate(across(where(is.numeric), round)) 
+  
+
+view(rounded_data)
+
+# round function automatically rounds to 0
+```
+
+
+## Exercise 3
+Using the rounded dataframe you created in Exercise 2, calculate the mean of each numeric variable in the dataset. Use kable() to insert a nicely formatted table into your R Markdown document.
+
+```{r}
+mean_data <- rounded_data %>% 
+  summarise(across(where(is.numeric), mean, na.rm = TRUE))
+
+nice_table <- mean_data %>% 
+  kable(
+    col.names = c("Dominant Hand Span", "Non-Dominant Hand Span", "Pulse", "Height", "Age"),
+    digits = 0,
+    caption = "Mean measurements of student characteristics at the University of Adelaide",
+    align = "ccccc") %>% 
+kable_styling("striped",
+              full_width = F,
+              position = "center",
+              font_size = "7",
+              stripe_color = "gray!10")
+
+# footnote("Data ")
+                
+
+
+
+nice_table
+
+```
+
+
+## Exercise 4
+Now make exactly the same table, using the pivot functions. Again, use kable() to insert a nicely formatted table into your R Markdown document.
+```{r}
+pivot_table_nice <- rounded_data %>% 
+  select(where(is.numeric)) %>% 
+  pivot_longer(cols = everything()) %>% 
+  group_by(name) %>% 
+  summarise(mean = mean(value, na.rm = TRUE)) %>% 
+  pivot_wider(names_from = name, values_from = mean) %>% 
+  kable(col.names = c("Age", "Height", "ND Hand", "Pulse", "D Hand"),
+    digits = 0,
+    caption = "Mean measurements of student characteristics at the University of Adelaide",
+    align = "ccccc")
+
+pivot_table_nice
+
+
+
+
+```
+
+## Exercise 5
+Students had initially expressed their height in either imperial or metric units, but someone converted everything into centimeters. Create a new variable, Height_original, which will show height in centimeters for students who expressed their height in metric units, and height in inches for students who prefer imperial units. 
+
+NOTE: This one is a bit of a challenge. You may want to check out the `case_when()` function.
+
+```{r}
+og_units <- rounded_data %>% 
+  select(Height, M.I) %>% 
+  mutate(Height_original = case_when(
+    M.I == "Imperial" ~ Height*0.394,
+    M.I == "Metric" ~ Height
+   )) %>% 
+  drop_na()
+
+view(og_units)
+
+
+
+```
+
+
+## Exercise 6
+Create a table that shows the mean and standard deviation of height - in centimeters for students who used metric units, and in inches for students who used imperial units. Use kable() to insert a nicely formatted table into your R Markdown document.
+
+```{r}
+mean_and_sd <- og_units %>% 
+  mutate(mean = mean(Height_original))
+
+
+mean_and_sd
+
+```
+
+
+## Exercise 7
+Create a contingency table to see the relationship between exercise and smoking. Pivot your table to make it easier to read, and then use kable() to insert a nicely formatted table into your R Markdown document.
+
+```{r}
+
+```
+
+
+## Exercise 8
+Create a grid of Pulse histograms - one histogram for each combination of Sex and Exercise.
+
+```{r}
+
+```
+
+
+## Exercise 9
+Create a new variable, Hnd.diff, that shows the difference in span between the writing and non-writing hand. Create a set of boxplots of this variable, with a separate boxplot for those who write with their right hand, and another one for those who write with their left hand.
+
+```{r}
+
+```
+
